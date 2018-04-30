@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.IO;
 using System.Collections;
@@ -58,9 +58,26 @@ public class CreateNPCs : MonoBehaviour {
 			//get all possible tags from the districts and translate them into infos
 			foreach (string tag in neednpcTaglist) {
 				List<string> infolist = new List<string> ();
+				string tagtext = text.getSubstringBetween (tag_text, @"{/type}" + tag + @"{/type}");
+				string maxtext = text.getSubstringBetween (tagtext, @"{/howManyRandomTypesMax}");
+				int maxint = int.Parse (maxtext);
 				infolist = NpcTagToInfo (tag, tag_text);
+
+				int counter3 = 0;
+				while (infolist.Count () > maxint) {
+					int rnd = UnityEngine.Random.Range (0, infolist.Count () - 1);
+					infolist.RemoveAt (rnd);
+
+					if (counter3 >= 1000) {
+						break;
+					}
+					Debug.Log (counter3);
+					counter3++;
+				}
+
 				neednpcInfolist.AddRange (infolist);
 			}
+
 			foreach (string tag in enablednpcTaglist) {
 				List<string> infolist = new List<string> ();
 				infolist = NpcTagToInfo (tag, tag_text);
@@ -109,8 +126,13 @@ public class CreateNPCs : MonoBehaviour {
 			int counter1 = 1;
 			int counter2 = 1;
 			//fill them up
+			//first needed without max
 			foreach (string info in neednpcInfolist) {
-				int howmanyOfInfo = int.Parse (text.getSubstringBetween(text.getSubstringBetween(info_text,  @"{/type}" + info + @"{/type}") , @"{/maxCount}"));
+				string infostr = text.getSubstringBetween(info_text,  @"{/type}" + info + @"{/type}");
+				string maxstr = text.getSubstringBetween (infostr,  @"{/maxCount}");
+				int howmanyOfInfo = int.Parse (maxstr);
+				Debug.Log (howmanyOfInfo);
+
 				while (howmanyOfInfo > 0 && counter1 <= 1000) {
 					Debug.Log ("counter1: " + counter1.ToString());
 					counter1++;
@@ -120,9 +142,12 @@ public class CreateNPCs : MonoBehaviour {
 					npcList.Add (npc);
 				}
 			}
-
+			//then enabled with max
 			int howmanyAreEnabled = enablednpcInfolist.Count ();
 			int endIfCannotAddMore = howmanyAreEnabled;
+			if (howmany > 0 && endIfCannotAddMore > 0 && counter1 <= 1000) {
+				Debug.LogWarning ("possible");
+			}
 			while (howmany > 0 && endIfCannotAddMore > 0 && counter1 <=1000) {
 				Debug.Log ("counter2: " + counter2.ToString());
 				counter2++;
